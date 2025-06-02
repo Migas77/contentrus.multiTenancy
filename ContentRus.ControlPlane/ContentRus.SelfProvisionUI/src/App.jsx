@@ -1,4 +1,4 @@
-import './App.css'
+  import './App.css'
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -11,14 +11,14 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Profile } from './pages/Profile';
 import { Success } from './pages/Sucess';
 
-function App() {
+  function App() {
 
-  return (
-    <Router>
-      <Routes>
+    return (
+      <Router>
+        <Routes>
 
-        {/* login/regist page - in case of user not logged */}
-        <Route path="/login" element={<Login />} />
+          {/* login/regist page - in case of user not logged */}
+          <Route path="/login" element={<Login />} />
 
         {/* main pages - in case of user logged */}
         <Route
@@ -43,4 +43,4 @@ function App() {
   )
 }
 
-export default App
+  export default App
