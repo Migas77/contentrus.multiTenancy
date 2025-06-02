@@ -9,6 +9,7 @@ import { Billing } from './pages/Billing';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Profile } from './pages/Profile';
+import { Success } from './pages/Sucess';
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
                   <Route path="/media" element={<Media />} />
                   <Route path="/billing" element={<Billing />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/success" element={<Success />} />
                 </Routes>
               </>
             </ProtectedRoute>
