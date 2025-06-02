@@ -56,6 +56,43 @@ public class MediaController : ControllerBase
         return NotFound();
     }
 
+    [Authorize]
+    [HttpDelete("delete/{fileName}")]
+    public async Task<IActionResult> Delete(string fileName)
+    {
+        var tenantId = GetTenantIdFromClaims();
+
+        var blobClient = new BlobContainerClient(_connectionString, _containerName);
+        var blob = blobClient.GetBlobClient($"{tenantId}/{fileName}");
+
+        var deleted = await blob.DeleteIfExistsAsync();
+
+        if (deleted)
+            return Ok(new { Message = $"File '{fileName}' deleted successfully." });
+
+        return NotFound(new { Message = $"File '{fileName}' not found." });
+    }
+
+
+    [Authorize]
+    [HttpGet("list")]
+    public async Task<IActionResult> ListFiles()
+    {
+        var tenantId = GetTenantIdFromClaims();
+
+        var blobClient = new BlobContainerClient(_connectionString, _containerName);
+        var result = new List<string>();
+
+        await foreach (var blobItem in blobClient.GetBlobsAsync(prefix: $"{tenantId}/"))
+        {
+            var fileName = blobItem.Name.Substring($"{tenantId}/".Length);
+            result.Add(fileName);
+        }
+
+        return Ok(result);
+    }
+
+
     private Guid GetTenantIdFromClaims()
     {
         var tenantIdClaim = User.FindFirst("TenantId")?.Value;
