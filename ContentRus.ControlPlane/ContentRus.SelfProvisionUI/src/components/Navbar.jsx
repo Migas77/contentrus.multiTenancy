@@ -35,7 +35,7 @@ export function Navbar() {
           <Link to="/" className="hover:underline">Main</Link>
         </li>
         <li>
-          <Link to="/test" className="hover:underline">Test</Link>
+          <Link to="/media" className="hover:underline">Media</Link>
         </li>
       </ul>
 

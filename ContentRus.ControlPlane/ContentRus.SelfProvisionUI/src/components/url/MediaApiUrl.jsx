@@ -1,0 +1,1 @@
+export const MEDIA_API_URL = "http://localhost:5241/api";

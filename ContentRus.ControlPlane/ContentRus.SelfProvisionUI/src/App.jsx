@@ -3,7 +3,7 @@ import './App.css'
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { Test } from './pages/Test';
+import { Media } from './pages/Media';
 import { Main } from './pages/Main';
 import { Billing } from './pages/Billing';
 import { Login } from './pages/Login';
@@ -28,7 +28,7 @@ function App() {
                 <Navbar />
                 <Routes>
                   <Route path="/" element={<Main />} />
-                  <Route path="/test" element={<Test />} />
+                  <Route path="/media" element={<Media />} />
                   <Route path="/billing" element={<Billing />} />
                   <Route path="/profile" element={<Profile />} />
                 </Routes>
