@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../components/ApiUrl';
+import { TENANT_API_URL } from '../components/url/TenantApiUrl';
 
 export function Profile() {
     const navigate = useNavigate();
@@ -30,7 +30,7 @@ export function Profile() {
     const { data: tenant, isLoading, isError } = useQuery({
         queryKey: ['tenant'],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/tenant`, {
+            const res = await fetch(`${TENANT_API_URL}/tenant`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error('Failed to fetch tenant');
@@ -64,7 +64,7 @@ export function Profile() {
 
     const updateTenantMutation = useMutation({
         mutationFn: async (formData) => {
-            const res = await fetch(`${API_URL}/tenant/info`, {
+            const res = await fetch(`${TENANT_API_URL}/tenant/info`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

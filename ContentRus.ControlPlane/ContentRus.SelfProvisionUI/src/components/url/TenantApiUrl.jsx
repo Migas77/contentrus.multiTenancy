@@ -1,0 +1,1 @@
+export const TENANT_API_URL = "http://localhost:5161/api";

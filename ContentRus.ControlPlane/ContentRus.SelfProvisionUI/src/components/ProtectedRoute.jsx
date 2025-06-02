@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { API_URL } from '../components/ApiUrl';
+import { TENANT_API_URL } from './url/TenantApiUrl';
 
 export function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }) {
   const { isLoading, isError } = useQuery({
     queryKey: ['validateToken'],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/user/validate`, {
+      const response = await fetch(`${TENANT_API_URL}/user/validate`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

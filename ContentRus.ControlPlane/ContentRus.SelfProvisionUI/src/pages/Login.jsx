@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_URL } from '../components/ApiUrl';
+import { TENANT_API_URL } from '../components/url/TenantApiUrl';
 
 export function Login() {
     const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ export function Login() {
         const navigate_url = isRegister ? '/profile' : '/';
 
         try {
-            const response = await fetch(`${API_URL}/user/${endpoint}`, {
+            const response = await fetch(`${TENANT_API_URL}/user/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

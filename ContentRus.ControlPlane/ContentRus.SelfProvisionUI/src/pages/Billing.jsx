@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useQuery } from '@tanstack/react-query';
-import { API_URL } from '../components/ApiUrl';
+import { TENANT_API_URL } from '../components/url/TenantApiUrl';
 import './../styles/billing.css';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -14,7 +14,7 @@ export function Billing() {
   const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
     queryKey: ['plans'],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/tenant/tiers`, {
+      const response = await fetch(`${TENANT_API_URL}/tenant/tiers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -29,7 +29,7 @@ export function Billing() {
   const { data: tenant, isLoading: tenantLoading, error: tenantError } = useQuery({
     queryKey: ['tenant'],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/tenant`, {
+      const response = await fetch(`${TENANT_API_URL}/tenant`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch tenant info');
@@ -65,7 +65,7 @@ export function Billing() {
     } finally {
 
       try {
-        await fetch(`${API_URL}/tenant/tier`, {
+        await fetch(`${TENANT_API_URL}/tenant/tier`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export function Billing() {
 
       // Update tenant state to ACTIVE after successful subscription
       try {
-        await fetch(`${API_URL}/tenant/state`, {
+        await fetch(`${TENANT_API_URL}/tenant/state`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
