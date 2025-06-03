@@ -19,7 +19,7 @@ builder.Services.AddSwaggerGen();
 
 
 // JWT 
-var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+/* var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
@@ -38,7 +38,7 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
-});
+}); */
 
 // CORS
 builder.Services.AddCors(options =>
