@@ -2,43 +2,32 @@ using Microsoft.AspNetCore.Mvc;
 using DotNetEnv;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 Env.Load();
 
-// var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-// var containerName = "media-container";
+var requiredEnvVars = new Dictionary<string, string>
+{
+    { "storageAccountName", "STORAGE_ACCOUNT_NAME" },
+    { "tenantId", "TENANT_ID" },
+    { "sasToken", "SAS_TOKEN" }
+};
 
+// Validate and add to configuration
+foreach (var (configKey, envVar) in requiredEnvVars)
+{
+    var value = Environment.GetEnvironmentVariable(envVar);
+    if (string.IsNullOrEmpty(value))
+    {
+        throw new InvalidOperationException($"Required environment variable {envVar} is not set");
+    }
+    builder.Configuration[configKey] = value;
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
-// JWT 
-/* var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
-var key = Encoding.ASCII.GetBytes(jwtKey);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-}); */
 
 // CORS
 builder.Services.AddCors(options =>
@@ -51,7 +40,6 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
 
 
 var app = builder.Build();
