@@ -18,3 +18,15 @@ spec:
           image: {{ .Values.notifications.image }}
           ports:
             - containerPort: {{ .Values.notifications.port }}
+          volumeMounts:
+            - name: notifications-env
+              mountPath: /app/.env
+              subPath: .env
+              readOnly: true
+      volumes:
+        - name: notifications-env
+          secret:
+            secretName: notifications-env-secret
+            items:
+              - key: .env
+                path: .env

@@ -32,7 +32,7 @@ builder.Services.AddOpenTelemetry()
         .AddHttpClientInstrumentation()
         .AddOtlpExporter(options => {
             options.Endpoint = new Uri(builder.Configuration["Telemetry:Endpoint"] ?? 
-                "http://simplest-collector.tcommon.svc.cluster.local:4317");
+                "http://simplest-collector.common.svc.cluster.local:4317");
             options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
         })
         .AddConsoleExporter())
@@ -62,7 +62,7 @@ builder.Services.AddOpenTelemetry()
         })
         .AddOtlpExporter(options => {
             options.Endpoint = new Uri(builder.Configuration["Telemetry:Endpoint"] ?? 
-                "http://simplest-collector.tcommon.svc.cluster.local:4317");
+                "http://simplest-collector.common.svc.cluster.local:4317");
             options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
         })
         .AddConsoleExporter());
@@ -81,7 +81,6 @@ builder.AddPiranha(options =>
     options.UseCms();
     options.UseManager();
 
-    options.UseFileStorage(naming: Piranha.Local.FileStorageNaming.UniqueFolderNames);
     options.UseImageSharp();
     options.UseTinyMCE();
     options.UseMemoryCache();
@@ -91,6 +90,15 @@ builder.AddPiranha(options =>
         db.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
     options.UseIdentityWithSeed<IdentityMySQLDb>(db =>
         db.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+    var containerName = builder.Configuration.GetConnectionString("ContainerName");
+
+    var blobConnectionString = builder.Configuration.GetConnectionString("blobstorage");
+
+    options.UseBlobStorage(blobConnectionString, containerName);
+    options.UseImageSharp();
+    options.UseTinyMCE();
+    options.UseMemoryCache();
 
     /**
      * Here you can configure the different permissions

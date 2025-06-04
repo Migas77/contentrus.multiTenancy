@@ -76,6 +76,9 @@ builder.Services.Configure<RabbitMqSettings>(options =>
 
 builder.Services.AddHostedService<RabbitMqConsumerService>();
 
+builder.Services.AddSingleton<RabbitMQOnboardingPublisher>();
+builder.Services.AddSingleton<RabbitMQNotificationPublisher>();
+
 // CORS
 builder.Services.AddCors(options =>
 {

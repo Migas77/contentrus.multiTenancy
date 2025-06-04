@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.onboarding.appName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.onboarding.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.onboarding.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.onboarding.appName }}
+          image: {{ .Values.onboarding.image }}
+          ports:
+            - containerPort: {{ .Values.onboarding.port }}
+          volumeMounts:
+            - name: onboarding-env
+              mountPath: /app/.env
+              subPath: .env
+              readOnly: true
+      volumes:
+        - name: onboarding-env
+          secret:
+            secretName: onboarding-env-secret
+            items:
+              - key: .env
+                path: .env

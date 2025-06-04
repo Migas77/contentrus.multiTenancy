@@ -4,8 +4,8 @@ CLUSTER_NAME = cluster
 REGISTRY_URL = k3d-$(REGISTRY_NAME):$(REGISTRY_PORT)
 
 # Image definitions
-IMAGES = contentrus-tenantmanagement contentrus-billing contentrus-selfprovision contentrus-notificationservice
-IMAGE_DOCKERFILES = infrastructure/Dockerfile.tenantmanagement infrastructure/Dockerfile.billing infrastructure/Dockerfile.selfprovision infrastructure/Dockerfile.notificationservice
+IMAGES = az-cli-kubectl contentrus-hostedsite contentrus-manager contentrus-tenantmanagement contentrus-billing contentrus-selfprovision contentrus-notificationservice contentrus-onboarding
+IMAGE_DOCKERFILES = infrastructure/Dockerfile.azclikubectl infrastructure/Dockerfile.hostedsite infrastructure/Dockerfile.manager infrastructure/Dockerfile.tenantmanagement infrastructure/Dockerfile.billing infrastructure/Dockerfile.selfprovision infrastructure/Dockerfile.notificationservice infrastructure/Dockerfile.onboarding
 
 .PHONY: all create-registry create-cluster kubeconfig set-as-default-kubeconfig clean-registry clean-cluster clean-all restart-docker build-images check-images
 
@@ -50,6 +50,21 @@ check-images:
 
 build-images:
 	@echo "Building and pushing images..."
+	@if echo "$(MISSING_IMAGES)" | grep -q "az-cli-kubectl" || [ -z "$(MISSING_IMAGES)" ]; then \
+		echo "Building az-cli-kubectl image..."; \
+		docker build -f infrastructure/Dockerfile.azclikubectl -t $(REGISTRY_URL)/az-cli-kubectl:latest .; \
+		docker push $(REGISTRY_URL)/az-cli-kubectl:latest; \
+	fi
+	if echo "$(MISSING_IMAGES)" | grep -q "contentrus-hostedsite" || [ -z "$(MISSING_IMAGES)" ]; then \
+		echo "Building Hosted Site..."; \
+		docker build -f infrastructure/Dockerfile.hostedsite -t $(REGISTRY_URL)/contentrus-hostedsite:latest .; \
+		docker push $(REGISTRY_URL)/contentrus-hostedsite:latest; \
+	fi
+	if echo "$(MISSING_IMAGES)" | grep -q "contentrus-manager" || [ -z "$(MISSING_IMAGES)" ]; then \
+		echo "Building Manager UI..."; \
+		docker build -f infrastructure/Dockerfile.manager -t $(REGISTRY_URL)/contentrus-manager:latest .; \
+		docker push $(REGISTRY_URL)/contentrus-manager:latest; \
+	fi
 	@if echo "$(MISSING_IMAGES)" | grep -q "contentrus-tenantmanagement" || [ -z "$(MISSING_IMAGES)" ]; then \
 		echo "Building Tenant Management..."; \
 		docker build -f infrastructure/Dockerfile.tenantmanagement -t $(REGISTRY_URL)/contentrus-tenantmanagement:latest .; \
@@ -69,6 +84,11 @@ build-images:
 		echo "Building Notifications Service..."; \
 		docker build -f infrastructure/Dockerfile.notificationservice -t $(REGISTRY_URL)/contentrus-notificationservice:latest .; \
 		docker push $(REGISTRY_URL)/contentrus-notificationservice:latest; \
+	fi
+	@if echo "$(MISSING_IMAGES)" | grep -q "contentrus-onboarding" || [ -z "$(MISSING_IMAGES)" ]; then \
+		echo "Building Onboarding Service..."; \
+		docker build -f infrastructure/Dockerfile.onboarding -t $(REGISTRY_URL)/contentrus-onboarding:latest .; \
+		docker push $(REGISTRY_URL)/contentrus-onboarding:latest; \
 	fi
 	@echo "✅ All images built and pushed successfully"
 
@@ -118,11 +138,16 @@ create-cluster:
 		kubectl create clusterrolebinding secret-writer-binding --clusterrole=secret-writer --serviceaccount=argowf:default; \
 		kubectl create clusterrole namespace-creator --verb=create --resource=namespaces; \
 		kubectl create clusterrolebinding namespace-creator-binding --clusterrole=namespace-creator --serviceaccount=argowf:default; \
+		kubectl create clusterrole workflow-creater --verb=create --resource=workflows.argoproj.io; \
+		kubectl create clusterrolebinding workflow-creater-binding --clusterrole=workflow-creater --serviceaccount=control:default; \
 		kubectl create secret generic github-creds --from-file=ssh-private-key=credentials/id_ed25519 -n argowf; \
-		kubectl create secret generic azure-cred-secret --from-file=username=azure_username.txt --from-file=password=azure_password.txt -n argowf; \
+		kubectl create secret generic azure-cred-secret --from-file=username=credentials/azure_username.txt --from-file=password=credentials/azure_password.txt -n argowf; \
 		helm install argocd argo/argo-cd -n argocd -f infrastructure/argo/argowf/setup/cd-values.yml --create-namespace; \
+		kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/notifications_catalog/install.yaml; \
+		kubectl apply -f infrastructure/argo/argocd/deploy-status-notification.yaml -n argocd; \
 		kubectl apply -f infrastructure/argo/argocd/project.yaml; \
 		kubectl apply -f infrastructure/argo/argocd/tenants-application-set.yaml; \
+		kubectl apply -f infrastructure/argo/argowf/tenant-provisioning-with-credentials-template.yml -n argowf; \
 		kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml; \
 		kubectl -n cert-manager wait --for=condition=ready pod -l app.kubernetes.io/name=webhook --timeout=120s; \
 		kubectl -n cert-manager wait --for=condition=ready pod -l app.kubernetes.io/name=cainjector --timeout=60s; \
@@ -136,15 +161,21 @@ create-cluster:
 		helm repo add kiali https://kiali.org/helm-charts; \
 		helm repo add kong https://charts.konghq.com; \
 		helm repo update; \
-		kubectl create namespace tcommon; \
-		helm install --set cr.create=true --set cr.namespace=tcommon --set cr.spec.auth.strategy="anonymous" --namespace tcommon kiali-operator kiali/kiali-operator; \
+		helm install --set cr.create=true --set cr.namespace=common --set cr.spec.auth.strategy="anonymous" --namespace common kiali-operator kiali/kiali-operator; \
 		kubectl apply -f infrastructure/kiali/kiali.yaml; \
-		helm install kube-prometheus-stack --namespace tcommon prometheus-community/kube-prometheus-stack; \
-		helm install opentelemetry infrastructure/3p-charts/opentelemetry -n tcommon --wait; \
-		helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack   -n tcommon   -f infrastructure/grafana/grafana-values.yaml; \
+		helm install kube-prometheus-stack --namespace common prometheus-community/kube-prometheus-stack; \
+		helm install opentelemetry infrastructure/3p-charts/opentelemetry -n common --wait; \
+		helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack   -n common   -f infrastructure/grafana/grafana-values.yaml; \
 		$(MAKE) download-istio-dashboards; \
 		$(MAKE) load-grafana-dashboards; \
 		kubectl create namespace control; \
+		sh infrastructure/secrets/tenantmanagement-mysql-env-secret-create.sh; \
+		sh infrastructure/secrets/tenantmanagement-env-secret-create.sh; \
+		sh infrastructure/secrets/stripe-env-secret-create.sh; \
+		sh infrastructure/secrets/frontend-env-secret-create.sh; \
+		sh infrastructure/secrets/billing-env-secret-create.sh; \
+		sh infrastructure/secrets/onboarding-env-secret-create.sh; \
+		sh infrastructure/secrets/notifications-env-secret-create.sh; \
 		helm install mysql oci://registry-1.docker.io/bitnamicharts/mysql -f infrastructure/3p-charts/mysql/values-tenantmanagement.yaml -n control --set namespaceOverride=control; \
 		helm install rabbitmq bitnami/rabbitmq -n control --set auth.username=user --set auth.password=password; \
 		kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml -n control; \
@@ -153,16 +184,13 @@ create-cluster:
 		kubectl apply -f infrastructure/custom-charts/kong/cors.yaml -n control; \
 		helm install kong kong/ingress -n control; \
 		kubectl apply -f infrastructure/custom-charts/ingress/ingress.yaml -n control; \
-		sh infrastructure/secrets/tenantmanagement-env-secret-create.sh; \
-		sh infrastructure/secrets/stripe-env-secret-create.sh; \
-		sh infrastructure/secrets/frontend-env-secret-create.sh; \
-		sh infrastructure/secrets/billing-env-secret-create.sh; \
 		kubectl apply -f infrastructure/custom-charts/stripe/role.yaml -n control; \
 		kubectl apply -f infrastructure/custom-charts/stripe/rolebinding.yaml -n control; \
 		kubectl apply -f infrastructure/custom-charts/stripe/configmap.yaml -n control; \
 		kubectl apply -f infrastructure/custom-charts/stripe/stripe.yaml -n control; \
 		helm install tenantmanagement -n control infrastructure/custom-charts/tenantmanagement/; \
 		helm install billing -n control infrastructure/custom-charts/billing/; \
+		helm install onboarding -n control infrastructure/custom-charts/onboarding/; \
 		helm install selfprovisionui -n control infrastructure/custom-charts/selfprovisionui/; \
 		helm install notificationservice -n control infrastructure/custom-charts/notifications/; \
 	else \
@@ -177,11 +205,11 @@ load-grafana-dashboards:
 		echo "Creating ConfigMap for dashboard: $$dashboard_name"; \
 		kubectl create configmap "grafana-dashboard-$$configmap_name" \
 			--from-file="$$dashboard_name.json=$$file" \
-			-n tcommon \
+			-n common \
 			--dry-run=client -o yaml | \
 		kubectl apply -f -; \
 		kubectl label configmap "grafana-dashboard-$$configmap_name" \
-			grafana_dashboard=1 -n tcommon --overwrite; \
+			grafana_dashboard=1 -n common --overwrite; \
 	done
 
 download-istio-dashboards:

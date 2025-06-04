@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 
 public class RabbitMqPublisher : IAsyncDisposable
 {
+    private const string tenant_status_queue_name = "tenant_status";
     private readonly IConnection _connection;
     private readonly IChannel _channel;
 
@@ -39,17 +40,15 @@ public class RabbitMqPublisher : IAsyncDisposable
         };
 
         await _channel.QueueDeclareAsync(
-            queue: "event_queue",
+            queue: tenant_status_queue_name,
             durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null);
 
-
-
         await _channel.BasicPublishAsync<BasicProperties>(
             exchange: "",
-            routingKey: "event_queue",
+            routingKey: tenant_status_queue_name,
             mandatory: true,
             basicProperties: properties,
             body: body);

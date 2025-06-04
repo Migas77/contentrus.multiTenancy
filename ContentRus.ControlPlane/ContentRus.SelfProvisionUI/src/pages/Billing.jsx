@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useQuery } from '@tanstack/react-query';
 import { API_URL } from '../components/ApiUrl';
+import { jwtDecode } from 'jwt-decode'; // Fixed import - remove the * as
+
 import './../styles/billing.css';
 
 const stripePromise = loadStripe("pk_test_51RQmwvDU2VGKpGD9rGhJKqYmBLaaoPkc5KvCLROi56j8ahrANvpiBm3hXuCITdiWl5H9roQ3wdyiYjrGsMjoaGg400RfisLjLm");
@@ -9,6 +11,26 @@ const stripePromise = loadStripe("pk_test_51RQmwvDU2VGKpGD9rGhJKqYmBLaaoPkc5KvCL
 export function Billing() {
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('token');
+
+  const tenantId = useMemo(() => {
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode(token);
+      console.log('Decoded JWT:', decoded); // Debug log to see the token structure
+      
+      // Try different possible claim names for tenant ID
+      return decoded.TenantId ?? 
+             decoded.tenantId ?? 
+             decoded.tid ?? 
+             decoded.sub ?? 
+             decoded.tenant_id ?? 
+             null;
+    } catch (err) {
+      console.error('Invalid JWT:', err);
+      return null;
+    }
+  }, [token]);
   
   // Fetch plans from API
   const { data: plans, isLoading: plansLoading, error: plansError } = useQuery({
@@ -23,7 +45,6 @@ export function Billing() {
     },
     staleTime: 60 * 60 * 1000, // Cache for 1 hour
   });
-
 
   // Fetch tenant info (tier and state)
   const { data: tenant, isLoading: tenantLoading, error: tenantError } = useQuery({
@@ -51,7 +72,7 @@ export function Billing() {
         },
         body: JSON.stringify({
           priceId: priceId,
-          tenantId: token,
+          tenantId: tenantId,
           id: id.toString(),
         }),
       });
@@ -67,6 +88,9 @@ export function Billing() {
       console.error('Error:', error);
     } 
   };
+
+  // Debug log to check tenantId
+  console.log('Current tenantId:', tenantId);
 
   if (plansLoading || tenantLoading) {
     return (
@@ -145,7 +169,6 @@ export function Billing() {
           })}
         </div>
       </div>
-
     </div>
   );
 }

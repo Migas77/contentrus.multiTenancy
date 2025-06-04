@@ -26,12 +26,7 @@ namespace StripeApi.Controllers
 
         [HttpPost]
         public async Task<IActionResult> HandleWebhook()
-        {
-            //Console.WriteLine($"=== WEBHOOK RECEIVED AT {DateTime.UtcNow} ===");
-            //Console.WriteLine($"Request Method: {Request.Method}");
-            //Console.WriteLine($"Request Path: {Request.Path}");
-            //Console.WriteLine($"Content-Type: {Request.ContentType}");
-            
+        {            
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
             //Console.WriteLine($"Webhook payload length: {json.Length}");
             //Console.WriteLine($"Webhook payload preview: {json.Substring(0, Math.Min(200, json.Length))}...");
@@ -54,6 +49,8 @@ namespace StripeApi.Controllers
                 {
                     case "checkout.session.completed":
                         var checkoutSession = stripeEvent.Data.Object as Session;
+                        
+
                         if (checkoutSession != null)
                         {
                             //Console.WriteLine($"🎉 CHECKOUT COMPLETED: {checkoutSession.Id}");
@@ -64,11 +61,10 @@ namespace StripeApi.Controllers
                     case "customer.subscription.created":
                         var subscriptionCreated = stripeEvent.Data.Object as Subscription;
 
-                        var tenantId = "lol";
                         if (subscriptionCreated != null)
                         {
                             //Console.WriteLine($"📋 SUBSCRIPTION CREATED: {subscriptionCreated.Id}");
-                            await HandleSubscriptionCreated(subscriptionCreated,tenantId);
+                            await HandleSubscriptionCreated(subscriptionCreated);
                         }
                         break;
 
@@ -121,14 +117,85 @@ namespace StripeApi.Controllers
         private async Task HandleCheckoutCompleted(Session checkoutSession)
         {
             Console.WriteLine($"Checkout session completed: {checkoutSession.Id}");
-            //Console.WriteLine($"Customer ID: {checkoutSession.CustomerId}");
-            //Console.WriteLine($"Subscription ID: {checkoutSession.SubscriptionId}");
+
+            // Get tenantId from checkout session metadata
+            string tenantId = null;
+            string productName = null;
+            if (checkoutSession.Metadata != null && checkoutSession.Metadata.TryGetValue("tenantId", out var storedTenantId))
+            {
+                tenantId = storedTenantId;
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(checkoutSession.SubscriptionId))
+                {
+                    var subscriptionService = new SubscriptionService();
+                    var subscription = await subscriptionService.GetAsync(checkoutSession.SubscriptionId);
+
+                    var priceId = subscription.Items.Data[0].Price.Id;
+                    var productId = subscription.Items.Data[0].Price.ProductId;
+
+                    var productService = new ProductService();
+                    var product = await productService.GetAsync(productId);
+                    productName = product.Name;
+
+                    Console.WriteLine($"Tenant ID: {tenantId}");
+                    Console.WriteLine($"Subscription ID: {subscription.Id}");
+                    Console.WriteLine($"Plan Name: {product.Name}");
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ No subscription associated with checkout session");
+                }
+
+                var evt = new PaymentConfirmedEvent
+                    {
+                        Type = "payment",
+                        Plan = productName,
+                        Status = "subscription created",
+                        TenantID = tenantId ?? "unknown"
+                    };
+
+                await _publisher.PublishAsync(evt);
+
+                Console.WriteLine("✅ Checkout completion event published successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ Error publishing checkout completion event: {e.Message}");
+            } 
         }
 
-        private async Task HandleSubscriptionCreated(Subscription subscription,String tenantId)
+        private async Task HandleSubscriptionCreated(Subscription subscription)
         {
-            Console.WriteLine($"Subscription created: {subscription.Id}");
-            //Console.WriteLine("tenantID in webhooks",tenantId);
+            
+            /* string tenantId = null;
+            try
+            {
+                if (subscription.LatestInvoiceId != null)
+                {
+                    var invoiceService = new InvoiceService();
+                    var invoice = await invoiceService.GetAsync(subscription.LatestInvoiceId);
+
+                    if (invoice.CheckoutSession != null)
+                    {
+                        var sessionService = new SessionService();
+                        var checkoutSession = await sessionService.GetAsync(invoice.CheckoutSession);
+
+                        if (checkoutSession.Metadata != null && checkoutSession.Metadata.TryGetValue("tenantId", out var storedTenantId))
+                        {
+                            tenantId = storedTenantId;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving tenantId from checkout session metadata: {ex.Message}");
+            }
+
+            Console.WriteLine($"Subscription created: {subscription.Id}, tenantId: {tenantId ?? "NOT FOUND"}");
             
             try
             {
@@ -142,6 +209,7 @@ namespace StripeApi.Controllers
                 //Console.WriteLine($"🔍 Subscription is for product: {product.Name}");
                 var evt = new PaymentConfirmedEvent
                 {
+                    Type = "payment",
                     Plan = product.Name,
                     Status = "subscription created",
                     TenantID = "lol"
@@ -155,7 +223,7 @@ namespace StripeApi.Controllers
             catch (Exception e)
             {
                 Console.WriteLine($"❌ Error publishing checkout completion event: {e.Message}");
-            }
+            } */
         }
 
         private async Task HandleSubscriptionUpdated(Subscription subscription)
