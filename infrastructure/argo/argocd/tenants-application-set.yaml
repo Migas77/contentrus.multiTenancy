@@ -3,6 +3,8 @@ kind: ApplicationSet
 metadata:
   name: tenant-applications
   namespace: argocd
+  annotations:
+      notifications.argoproj.io/subscribe.webhook: ""
 spec:
   generators:
   - git:

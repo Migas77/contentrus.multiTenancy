@@ -118,13 +118,15 @@ public class RabbitMqConsumerService : BackgroundService, IDisposable
                 case "deployment":
 
                     var deploymentEvent = JsonSerializer.Deserialize<DeploymentStatusEvent>(message);
-                    if (!Guid.TryParse(deploymentEvent.TenantID, out Guid tenantGuid2))
+                    var extractTenantId = deploymentEvent.TenantID.Substring(1);
+
+                    if (!Guid.TryParse(extractTenantId, out Guid tenantGuid2))
                     {
                         Console.WriteLine(" [!] Invalid tenant ID");
                         return;
                     }
 
-                    var tenantId = Guid.Parse(deploymentEvent.TenantID);
+                    var tenantId = Guid.Parse(extractTenantId);
                     var tenantUser = userService.GetUserByTenantId(tenantId);
                     if (tenantUser != null)
                     {
