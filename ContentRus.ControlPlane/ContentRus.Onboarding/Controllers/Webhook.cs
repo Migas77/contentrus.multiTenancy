@@ -38,11 +38,10 @@ public class WebhookController : ControllerBase
         {
             Type = "deployment",
             Status = status,
-            TenantID = deploymentMessage.tenantNamespace.Substring(1), // Remove first character ('t' from 't1')
+            TenantID = deploymentMessage.tenantNamespace,
         };
 
-        var serializedMessage = System.Text.Json.JsonSerializer.Serialize(deploymentStatus);
-        await _tenantStatusPublisher.PublishAsync(serializedMessage);
+        await _tenantStatusPublisher.PublishAsync(deploymentStatus);
 
         return Ok(new { message = "Deployment status comunicated successfully." });
     }
@@ -76,6 +75,11 @@ public class WebhookController : ControllerBase
         /// The timestamp of the deployment status update.
         /// </summary>
         required public string timestamp { get; set; }
+
+        public override string ToString()
+        {
+            return $"DeploymentMessage [app={app}, status={status}, health={health}, tenantNamespace={tenantNamespace}, timestamp={timestamp}]";
+        }
     }
     
 }

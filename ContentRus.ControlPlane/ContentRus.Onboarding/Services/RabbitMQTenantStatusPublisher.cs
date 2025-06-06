@@ -45,8 +45,8 @@ public class RabbitMQTenantStatusPublisher : IAsyncDisposable
     /// <param name="message">The message to publish.</param>
     public async Task PublishAsync<T>(T message)
     {
+        _logger.LogInformation("Publishing message: {Message}", message);
         var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-        Console.WriteLine("message", message);
 
         var properties = new BasicProperties
         {
