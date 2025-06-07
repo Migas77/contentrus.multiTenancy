@@ -3,22 +3,13 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: allow-same-namespace
-  namespace: {{ .Release.Namespace }}
+  namespace: t49acb0d6-d4cb-42de-935a-2f7e2ca5d458
 spec:
   action: ALLOW
   rules:
     - from:
         - source:
-            namespaces: ["{{ .Release.Namespace }}"]
+            namespaces: ["t49acb0d6-d4cb-42de-935a-2f7e2ca5d458"]
     - to:
         - operation:
             hosts: ["*.control.svc.cluster.local", "*.common.svc.cluster.local"]
-
-# Deny everything else
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: deny-cross-namespace
-  namespace: {{ .Release.Namespace }}
-spec:
-  action: DENY
