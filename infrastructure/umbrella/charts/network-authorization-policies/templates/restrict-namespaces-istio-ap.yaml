@@ -3,7 +3,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: deny-cross-namespace
-  namespace: t49acb0d6-d4cb-42de-935a-2f7e2ca5d458
+  namespace: {{ .Release.Namespace }}
 spec:
   action: DENY
   rules:

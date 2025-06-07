@@ -3,13 +3,13 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: allow-same-namespace
-  namespace: t49acb0d6-d4cb-42de-935a-2f7e2ca5d458
+  namespace: {{ .Release.Namespace }}
 spec:
   action: ALLOW
   rules:
     - from:
         - source:
-            namespaces: ["t49acb0d6-d4cb-42de-935a-2f7e2ca5d458"]
+            namespaces: ["{{ .Release.Namespace }}"]
     - to:
         - operation:
             hosts: ["*.control.svc.cluster.local", "*.common.svc.cluster.local"]
