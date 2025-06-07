@@ -2,16 +2,24 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: allow-gateway-and-self
+  name: allow-same-namespace
   namespace: {{ .Release.Namespace }}
-spec:         
+spec:
   action: ALLOW
   rules:
-  - from:
-    - source:
-        principals:
-        - cluster.local/ns/common/sa/istio-ingress
-    - source:
-        namespaces:
-          - "{{ .Release.Namespace }}"
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+    - from:
+        - source:
+            namespaces: ["{{ .Release.Namespace }}"]
+    - from:
+        - source:
+            namespaces: ["common"]
+    - from:
+        - source:
+            principals:
+            - cluster.local/ns/common/sa/istio-ingress
+
+            
 
