@@ -23,6 +23,10 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: istio-system
     - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: common
+    - from:
         - podSelector: {}
   egress:
     - to:
