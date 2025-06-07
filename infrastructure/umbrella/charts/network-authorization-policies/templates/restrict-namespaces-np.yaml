@@ -30,6 +30,10 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: common
     - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+    - to:
         - podSelector: {}
     # Allow DNS resolution
     - to:
