@@ -11,7 +11,7 @@ spec:
     - source:
         principals:
         - cluster.local/ns/common/sa/istio-ingress
-  - source:
-      namespaces:
-        - "{{ .Release.Namespace }}"
+    - source:
+        namespaces:
+          - "{{ .Release.Namespace }}"
 
