@@ -1,0 +1,21 @@
+# Allow only intra-namespace traffic
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-same-namespace
+  namespace: {{ .Release.Namespace }}
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+    - from:
+        - source:
+            namespaces: ["{{ .Release.Namespace }}"]
+    - from:
+        - source:
+            namespaces: ["common"]
+    - to:
+        - operation:
+            hosts: ["*.control.svc.cluster.local", "*.common.svc.cluster.local"]
