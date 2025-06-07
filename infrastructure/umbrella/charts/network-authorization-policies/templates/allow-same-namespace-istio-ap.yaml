@@ -16,6 +16,3 @@ spec:
     - from:
         - source:
             namespaces: ["common"]
-    - to:
-        - operation:
-            hosts: ["*.control.svc.cluster.local", "*.common.svc.cluster.local"]
