@@ -9,6 +9,9 @@ spec:
   rules:
     - from:
         - source:
+            namespaces: ["istio-system"]
+    - from:
+        - source:
             namespaces: ["{{ .Release.Namespace }}"]
     - to:
         - operation:
