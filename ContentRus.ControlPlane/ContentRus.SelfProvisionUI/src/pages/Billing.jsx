@@ -138,7 +138,7 @@ export function Billing() {
   return (
     <div className="App">
       <header>
-        <h1>Choose Your Subscription Plan</h1>
+        {!deploymentSuccess && <h1>Choose Your Subscription Plan</h1>}
         {warningMessage}
       </header>
       
