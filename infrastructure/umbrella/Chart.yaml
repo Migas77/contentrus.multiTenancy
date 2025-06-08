@@ -9,7 +9,11 @@ dependencies:
   - name: manager
     version: 0.1.0
     repository: "file://charts/manager"
+  - name: network-authorization-policies
+    version: 0.1.0
+    repository: "file://charts/network-authorization-policies"
   - name: mysql
     version: 12.3.5
     repository: https://charts.bitnami.com/bitnami
+
 

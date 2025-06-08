@@ -1,0 +1,5 @@
+apiVersion: v2
+name: network-authorization-policies
+description: Restrict network and authorization policies for Piranha CMS
+version: 0.1.0
+appVersion: "1.0"
