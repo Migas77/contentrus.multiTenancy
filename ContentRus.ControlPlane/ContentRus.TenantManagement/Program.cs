@@ -10,6 +10,7 @@ using ContentRus.TenantManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using ContentRus.TenantManagement.RabbitMQ;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 Env.Load();
@@ -37,7 +38,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TenantService>();

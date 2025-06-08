@@ -9,6 +9,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 
+/// <summary>
+/// API endpoints for managing user authentication.
+/// </summary>
 namespace ContentRus.TenantManagement.Controllers;
 
 [ApiController]
@@ -60,6 +63,11 @@ public class UserController : ControllerBase
         return user.Email;
     }
 
+    /// <summary>
+    /// Registers a new user and creates a new tenant.
+    /// </summary>
+    /// <param name="authRequest">User email and password.</param>
+    /// <returns>JWT token and username.</returns>
     [HttpPost("register")]
     public IActionResult RegisterUser([FromBody] AuthRequest authRequest)
     {
@@ -70,6 +78,11 @@ public class UserController : ControllerBase
         return Ok(new { token, username = GetUsername(user) });
     }
 
+    /// <summary>
+    /// Logs in an existing user.
+    /// </summary>
+    /// <param name="authRequest">User email and password.</param>
+    /// <returns>JWT token and username if credentials are valid.</returns>
     [HttpPost("login")]
     public IActionResult LoginUser([FromBody] AuthRequest authRequest)
     {
@@ -83,6 +96,12 @@ public class UserController : ControllerBase
         return Ok(new { token, username = GetUsername(user) });
     }
 
+    /// <summary>
+    /// Updates a user's password.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <param name="newPassword">New password string.</param>
+    /// <returns>No content if successful, NotFound otherwise.</returns>
     [HttpPut("{id:int}/password")]
     public IActionResult UpdateUserPassword(int id, [FromBody] string newPassword)
     {
@@ -90,6 +109,11 @@ public class UserController : ControllerBase
         return updated ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// Gets user details by ID.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <returns>User details if found.</returns>
     [HttpGet("{id:int}")]
     public IActionResult GetUser(int id)
     {
@@ -97,14 +121,11 @@ public class UserController : ControllerBase
         return user is not null ? Ok(user) : NotFound();
     }
 
-    // nao sei se este endpoint vai ser preciso na versao final
-    [HttpGet]
-    public IActionResult GetAllUsers()
-    {
-        var users = _userService.GetAllUsers();
-        return Ok(users);
-    }
 
+    /// <summary>
+    /// Validates the user's JWT token.
+    /// </summary>
+    /// <returns>Boolean indicating whether the token is valid.</returns>
     [Authorize]
     [HttpGet("validate")]
     public IActionResult ValidateToken()
