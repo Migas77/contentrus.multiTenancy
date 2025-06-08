@@ -1,0 +1,52 @@
+title Tenant Onboarding Workflow
+
+actor Tenant
+participant SelfProvisionUI
+participant Stripe
+participant Billing
+participant MessageQueue
+participant TenantManagement
+participant SelfProvisionUI
+participant OnboardingService
+participant NotificationService
+
+
+
+Tenant -> SelfProvisionUI: Choose Subscription
+
+SelfProvisionUI -> Tenant: Redirect to Stripe subscription page
+
+Tenant -> Stripe: Insert payment details and confirm payment
+
+Stripe -> Billing: checkout.session.completed\ncustomer.subscription.created
+
+
+
+
+Billing-> MessageQueue: Send "subscription created" message
+
+MessageQueue -> TenantManagement:Receive "subscription created" message
+
+TenantManagement -> TenantManagement: Update tenant state to "ACTIVE"
+
+TenantManagement->MessageQueue:Send "provisionRequest" message
+
+MessageQueue-> OnboardingService: Receive "provisionRequest" message
+
+OnboardingService -> OnboardingService: Deploy isolated environment
+
+OnboardingService -> MessageQueue: When webhook is triggered send "deployment" message with success status
+
+MessageQueue -> TenantManagement: Receive "deployment" message with success status
+
+TenantManagement-> TenantManagement:Update tenant state to "DEPLOYMENTSUCCESS"
+
+SelfProvisionUI->TenantManagement: Get Tenant State 
+
+SelfProvisionUI->Tenant: Show "Your deployment\nwas successful message"
+
+TenantManagement -> MessageQueue: Send "notification" message
+
+MessageQueue -> NotificationService: Receive "notification" message
+
+NotificationService -> Tenant: Send "your CMS is ready" email to tenant

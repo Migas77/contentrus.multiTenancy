@@ -1,0 +1,45 @@
+classDiagram
+    
+    AdminInterface --> Tenant Admin Auth : Auth Methods
+    SelfProvisionInterface --> Tenant Admin Auth : Auth Methods
+    SelfProvisionInterface --> Tenant Management : createTenant(userId)
+    SelfProvisionInterface --> Billing : createPaymentIntent(tenantId,subscId)
+    Billing --> TenantManagement : updateTenantState(tenantId, BILLING_INITIALIZED)
+    TenantManagement --> Onboarding : provisionEnv(tenantId)
+    Onboarding --> TenantManagement : updateTenantState(tenantId, ENV_CREATED)
+    TenantManagement --> NotificationService : notifyEmail(ENV_PROVISIONED)
+
+    class AdminInterface {
+    }
+
+    class SelfProvisionInterface{
+        +redirectCheckoutPage(intentUrl)
+    }
+
+    
+    class Tenant Admin Auth{
+        +signIn(SignInRequest signInRequest)
+        +signUp(SignUpRequest signUpRequest)
+        +signOut()
+    }
+
+    class Billing{
+        +createPaymentIntent(int tenantId, int subscId)
+        +checkoutWebhook(content)
+    }
+
+    class Onboarding {
+        +provisionEnv(int tenantId)
+    }
+
+    class Notification Service{
+        +notifyEmail(Template email)
+    }
+
+    class Tenant Management {
+        +createTenant(int user_id)
+        +updateTenantState(int tenantId, TenantState ts)
+        +disableTenant()
+    }
+    
+
