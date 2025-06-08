@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ContentRus.TenantManagement.Controllers;
 
+/// <summary>
+/// API endpoints for managing tenant configuration and details.
+/// </summary>
 [ApiController]
 [Route("api/tenant")]
 public class TenantController : ControllerBase
@@ -16,15 +19,11 @@ public class TenantController : ControllerBase
         _tenantService = tenantService;
     }
 
-    /*
-    [HttpPost]
-    public IActionResult CreateTenant([FromBody] TenantDTO request)
-    {
-        var tenant = _tenantService.CreateTenant(request.Email);
-        return CreatedAtAction(nameof(GetTenant), new { id = tenant.Id }, tenant);
-    }
-    */
-
+    /// <summary>
+    /// Updates the state of the current tenant (e.g., Active, Cancelled, DeploymentSuccess).
+    /// </summary>
+    /// <param name="newState">New state to apply to the tenant.</param>
+    /// <returns>No content if updated successfully, NotFound otherwise.</returns>
     [HttpPut("state")]
     public IActionResult UpdateTenantState([FromBody] TenantState newState)
     {
@@ -33,6 +32,11 @@ public class TenantController : ControllerBase
         return updated ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// Updates the subscription tier of the current tenant.
+    /// </summary>
+    /// <param name="newTier">New subscription tier to assign.</param>
+    /// <returns>No content if updated successfully, NotFound otherwise.</returns>
     [HttpPut("tier")]
     public IActionResult UpdateTenantTier([FromBody] TenantTier newTier)
     {
@@ -41,6 +45,11 @@ public class TenantController : ControllerBase
         return updated ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// Updates general information (e.g., company name, address) of the current tenant.
+    /// </summary>
+    /// <param name="tenantInfo">DTO containing updated tenant info.</param>
+    /// <returns>No content if updated successfully, NotFound otherwise.</returns>
     [HttpPut("info")]
     public IActionResult UpdateTenantInfo([FromBody] TenantInfoDTO tenantInfo)
     {
@@ -50,6 +59,10 @@ public class TenantController : ControllerBase
         return updated ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// Gets the current tenant's details based on authenticated user's token.
+    /// </summary>
+    /// <returns>Tenant details if found, otherwise NotFound.</returns>
     [Authorize]
     [HttpGet("")]
     public IActionResult GetTenant()
@@ -61,19 +74,15 @@ public class TenantController : ControllerBase
         return tenant is not null ? Ok(tenant) : NotFound();
     }
 
+    /// <summary>
+    /// Lists all available tenant subscription tiers.
+    /// </summary>
+    /// <returns>List of tenant tiers.</returns>
     [HttpGet("tiers")]
     public IActionResult GetAllTenantTiers()
     {
         var tenantTiers = _tenantService.GetAllTenantTiers();
         return Ok(tenantTiers);
-    }
-
-    // nao sei se este endpoint vai ser preciso na versao final
-    [HttpGet("all")]
-    public IActionResult GetAllTenants()
-    {
-        var tenants = _tenantService.GetAllTenants();
-        return Ok(tenants);
     }
 
     private Guid GetTenantIdFromClaims()

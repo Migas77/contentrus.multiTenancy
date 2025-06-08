@@ -15,7 +15,7 @@ export function Profile() {
     const { data: countriesData, isLoading: countriesLoading } = useQuery({
         queryKey: ['countries'],
         queryFn: async () => {
-            const response = await fetch('https://restcountries.com/v3.1/all');
+            const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flag');
             if (!response.ok) throw new Error('Failed to fetch countries');
             const data = await response.json();
             

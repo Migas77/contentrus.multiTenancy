@@ -122,10 +122,15 @@ export function Billing() {
 
   let warningMessage = null;
   let displayActivePlan = false;
+  let deploymentSuccess = false;
+  
   if (tenant?.state === 1) {
     warningMessage = <p className="warning">Waiting for payment</p>;
   } else if (tenant?.state === 3) {
     warningMessage = <p className="warning cancelled">Cancelled</p>;
+  } else if (tenant?.state === 4) {
+    deploymentSuccess = true;
+    warningMessage = <p className="success">Deployment Successful!</p>;
   } else {
     displayActivePlan = true;
   }
@@ -133,41 +138,69 @@ export function Billing() {
   return (
     <div className="App">
       <header>
-        <h1>Choose Your Subscription Plan</h1>
+        {!deploymentSuccess && <h1>Choose Your Subscription Plan</h1>}
         {warningMessage}
       </header>
       
       <div className="pricing-container">
-        <div className="pricing-grid">
-          {plans && plans.map((plan) => {
-            const isActive = tenant?.tier === plan.id && displayActivePlan;
-
-            return (
-              <div
-                key={plan.id}
-                className={`pricing-card ${isActive ? 'active-plan' : ''}`}
+        {deploymentSuccess ? (
+          <div className="success-deployment bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" className="success-icon text-green-500 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+                        
+            <p className="success-description text-gray-600 dark:text-gray-400">
+              You can now access your ContentRus sites using the following links:
+            </p>
+            
+            <div className="deployment-links">
+              <div 
+                className="link-item bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => window.open(`https://www.contentrus.hostedsite.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
               >
-                <h2>{plan.name}</h2>
-                <div className="price">
-                  <span className="amount">${plan.price}</span>
-                  <span className="interval">/month</span>
-                </div>
-                <ul className="features">
-                  {plan.features.map((feature, index) => (
-                    <li key={index}>{feature}</li>
-                  ))}
-                </ul>
-                <button
-                  className="subscribe-button"
-                  onClick={() => handleSubscribe(plan.id, plan.priceId)}
-                  disabled={loading || isActive}
-                >
-                  {loading ? 'Processing...' : isActive ? 'Current Plan' : 'Subscribe'}
-                </button>
+                <h3 className="text-gray-700 dark:text-gray-300">Hosted Site</h3>
               </div>
-            );
-          })}
-        </div>
+              
+              <div 
+                className="link-item bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                onClick={() => window.open(`https://www.contentrus.manager.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
+              >
+                <h3 className="text-gray-700 dark:text-gray-300">Content Manager</h3>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="pricing-grid">
+            {plans && plans.map((plan) => {
+              const isActive = tenant?.tier === plan.id && displayActivePlan;
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`pricing-card ${isActive ? 'active-plan' : ''}`}
+                >
+                  <h2>{plan.name}</h2>
+                  <div className="price">
+                    <span className="amount">${plan.price}</span>
+                    <span className="interval">/month</span>
+                  </div>
+                  <ul className="features">
+                    {plan.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                  <button
+                    className="subscribe-button"
+                    onClick={() => handleSubscribe(plan.id, plan.priceId)}
+                    disabled={loading || isActive}
+                  >
+                    {loading ? 'Processing...' : isActive ? 'Current Plan' : 'Subscribe'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
