@@ -22,7 +22,7 @@ spec:
   
       sources:
         - repoURL: https://github.com/Migas77/contentrus.multiTenancy.git
-          targetRevision: SCRUM-23-Network-and-Authorization-Policies-for-Isolation-Between-Tenants-Namespaces
+          targetRevision: HEAD
           path: infrastructure/umbrella
           helm:
             valueFiles:
