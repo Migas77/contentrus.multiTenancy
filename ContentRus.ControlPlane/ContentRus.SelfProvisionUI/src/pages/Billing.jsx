@@ -156,14 +156,14 @@ export function Billing() {
             <div className="deployment-links">
               <div 
                 className="link-item bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => window.open(`https://www.contentrus.hostedsite.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open(`http://www.contentrus.hostedsite.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
               >
                 <h3 className="text-gray-700 dark:text-gray-300">Hosted Site</h3>
               </div>
               
               <div 
                 className="link-item bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => window.open(`https://www.contentrus.manager.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
+                onClick={() => window.open(`http://www.contentrus.manager.t${tenantId}.com`, '_blank', 'noopener,noreferrer')}
               >
                 <h3 className="text-gray-700 dark:text-gray-300">Content Manager</h3>
               </div>
