@@ -9,6 +9,7 @@ A multi-tenant CMS platform developed within the scope of Software Architectures
 - [``credentials/``](credentials/) - placeholder folder to add some credentials as specified in [README.md](credentials/README.md)
 - [``infrastructure/``](infrastructure/) - contains all of the infrastructure provisioning scripts, mainly using helm charts and .yaml files
 - [``reports_diagrams/``](reports_diagrams/) - contains the reports, diagrams and presentations made throughout the assignment.
+- [``Makefile``](Makefile) - the Makefile contains all that is necessary to create k3d registry, cluster, build and push the docker images and provision the baseline infrastructure of the application.
 
 As this is a fork from PiranhaCMS's [piranha.core](https://github.com/PiranhaCMS/piranha.core) it includes application code regarding piranha included in [``core/``](core/), [``data/``](data/), [``identity/``](identity/) and [``test/``](test/)
 
